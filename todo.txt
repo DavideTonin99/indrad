@@ -1,0 +1,25 @@
+window:
+[ok] * sliding window (window_size, window_stride)
+
+[ok] normalization
+[ok] concatenation of trajectories (for training)
+[] application of anomalies (parametrized)
+[] validation
+[] inference
+[] statistics for benchmark
+
+[] command line parameters
+
+sliding window
+0 - 20
+10 - 30
+20 - 40
+
+0 - 20
+20 - 30
+30 - 40
+
+
+0 - 10
+10 - 20
+20 - 40
