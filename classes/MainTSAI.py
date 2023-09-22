@@ -10,8 +10,8 @@ import copy
 from tsai.basics import *
 import pandas as pd
 
-class MainTSAI(Main):
 
+class MainTSAI(Main):
     DEFAULT_PARAMS = {
         'APPLY_MOVING_AVG': True,
         'MOVING_AVG_STEP': 50,
@@ -44,28 +44,31 @@ class MainTSAI(Main):
         if self.params.APPLY_PCA:
             # pca model
             self.pca_model = fit_pca(self.dataset_train_process.ts_data.data, n_components=self.params.PCA_COMPONENTS,
-                                    show_plot_variance=False)
+                                     show_plot_variance=False)
 
         arch_config = dict(
             n_layers=3,  # number of encoder layers
             n_heads=4,  # number of heads
             d_model=16,  # dimension of model
             d_ff=128,  # dimension of fully connected network
-            attn_dropout=0.0, # dropout applied to the attention weights
+            attn_dropout=0.0,  # dropout applied to the attention weights
             dropout=0.3,  # dropout applied to all linear layers in the encoder except q,k&v projections
             patch_len=24,  # length of the patch applied to the time series to create patches
             stride=2,  # stride used when creating patches
             padding_patch=True,  # padding_patch
         )
         df_ts = pd.DataFrame(self.dataset_train_process.ts_data.data)
-        X, y = prepare_forecasting_data(df=df_ts, fcst_history=len(self.dataset_train_process.ts_data.data), fcst_horizon=0)
-        learn = TSForecaster(X, y, batch_size=16, path="models", pipelines=[], arch="PatchTST", arch_config=arch_config, metrics=[mse, mae], cbs=[ShowGraph()])
+        X, y = prepare_forecasting_data(df=df_ts, fcst_history=len(self.dataset_train_process.ts_data.data),
+                                        fcst_horizon=0)
+        learn = TSForecaster(X, y, batch_size=16, path="models", pipelines=[], arch="PatchTST", arch_config=arch_config,
+                             metrics=[mse, mae], cbs=[ShowGraph()])
         print(learn.summary())
         # n_epochs = 100
         # lr_max = 0.0025
         # learn.fit_one_cycle(n_epochs, lr_max=lr_max)
 
-    def evaluate(self, dataset: Dataset, dataset_process: Dataset, mode: str = 'complete', train: bool = False, threshold_params: dict = {}) -> dict:
+    def predict(self, dataset: Dataset, dataset_process: Dataset, mode: str = 'complete', train: bool = False,
+                threshold_params: dict = {}) -> dict:
         """
         Evaluate the model
         :param dataset: dataset to evaluate
@@ -83,14 +86,16 @@ class MainTSAI(Main):
                 if self.params.THRESHOLD_TYPE == 'mahalanobis':
                     self.mahalanobis = {}
                     self.mahalanobis['gm'] = GaussianMixture(
-                        n_components=self.params.GAUSSIAN_MIXTURE_COMPONENTS, random_state=0).fit(dataset_process.ts_data.data)
+                        n_components=self.params.GAUSSIAN_MIXTURE_COMPONENTS, random_state=0).fit(
+                        dataset_process.ts_data.data)
                     self.mahalanobis['covariance_matrix'], self.mahalanobis['inverse_covariance_matrix'] = cov_matrix(
                         dataset_process.ts_data.data)
 
                     self.mahalanobis_distance_train = []
                     for i in range(self.params.GAUSSIAN_MIXTURE_COMPONENTS):
                         self.mahalanobis_distance_train.append(mahalanobis_dist(
-                            self.mahalanobis['inverse_covariance_matrix'], self.mahalanobis['gm'].means_[i], dataset_process.ts_data.data))
+                            self.mahalanobis['inverse_covariance_matrix'], self.mahalanobis['gm'].means_[i],
+                            dataset_process.ts_data.data))
                     self.mahalanobis_distance_train = np.median(
                         np.array(self.mahalanobis_distance_train).T)
         else:
@@ -100,7 +105,8 @@ class MainTSAI(Main):
                 if mode == 'complete':
                     for i in range(self.params.GAUSSIAN_MIXTURE_COMPONENTS):
                         self.mahalanobis_distance_evaluation[dataset_process.name].append(mahalanobis_dist(
-                            self.mahalanobis['inverse_covariance_matrix'], self.mahalanobis['gm'].means_[i], dataset_process.ts_data.data))
+                            self.mahalanobis['inverse_covariance_matrix'], self.mahalanobis['gm'].means_[i],
+                            dataset_process.ts_data.data))
                     self.mahalanobis_distance_evaluation[dataset_process.name] = np.min(
                         np.array(self.mahalanobis_distance_evaluation[dataset_process.name]).T)
                 else:
@@ -108,7 +114,8 @@ class MainTSAI(Main):
                         self.mahalanobis_distance_evaluation[ts_name] = []
                         for i in range(self.params.GAUSSIAN_MIXTURE_COMPONENTS):
                             self.mahalanobis_distance_evaluation[ts_name].append(mahalanobis_dist(
-                                self.mahalanobis['inverse_covariance_matrix'], self.mahalanobis['gm'].means_[i], dataset_process.time_series[ts_name].data))
+                                self.mahalanobis['inverse_covariance_matrix'], self.mahalanobis['gm'].means_[i],
+                                dataset_process.time_series[ts_name].data))
                         self.mahalanobis_distance_evaluation[ts_name] = np.min(
                             np.array(self.mahalanobis_distance_evaluation[ts_name]).T)
 
@@ -139,20 +146,19 @@ class MainTSAI(Main):
                         errors=errors[dataset.name], **threshold_params)
                 elif self.params.THRESHOLD_TYPE == 'mahalanobis':
                     self.mahalanobis['threshold'] = np.median(
-                        np.sum(np.abs(errors[dataset.name]), axis=1), axis=0) * 5   
+                        np.sum(np.abs(errors[dataset.name]), axis=1), axis=0) * 5
                 elif self.params.THRESHOLD_TYPE == 'score':
                     self.score['threshold'] = np.median(
-                        np.sum(np.abs(errors[dataset.name]), axis=1), axis=0) * 5   
+                        np.sum(np.abs(errors[dataset.name]), axis=1), axis=0) * 5
 
-
-    def test(self, t_list: list = [], corruption_params: dict = {}) -> None:
+    def inference(self, t_list: list = [], corruption_params: dict = {}) -> None:
         """
         Test the model
         :param t_list: list of test time series
         """
         super().pre_test(t_list=t_list, corruption_params=corruption_params)
 
-        errors = self.evaluate(
+        errors = self.predict(
             dataset=self.dataset_test, dataset_process=self.dataset_test_process, mode='single')
 
         for ts_name in self.dataset_test.time_series.keys():
@@ -167,13 +173,15 @@ class MainTSAI(Main):
     def anomaly(self, ts_true: TimeSeries, ts_pred: TimeSeries, errors: np.array, show_plot: bool = True) -> None:
         if self.params.THRESHOLD_TYPE == 'quantile':
             anomalies_mask = ((errors > self.bounds['upper']) | (
-                errors < self.bounds['lower'])) == True
-            
+                    errors < self.bounds['lower'])) == True
+
             anomalies = copy.deepcopy(ts_true.data)
             anomalies[np.logical_not(anomalies_mask)] = np.nan
 
-            plot_ts(f"Figure Test {ts_true.name} with anomalies", ts={'ts': ts_true.data, 'anomaly': anomalies}, features=TimeSeriesUtils.FEATURES,
-                    n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), figsize=(15, 5), colors={'ts': 'black', 'anomaly': 'red'})
+            plot_ts(f"Figure Test {ts_true.name} with anomalies", ts={'ts': ts_true.data, 'anomaly': anomalies},
+                    features=TimeSeriesUtils.FEATURES,
+                    n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), figsize=(15, 5),
+                    colors={'ts': 'black', 'anomaly': 'red'})
             plt.show()
 
         elif self.params.THRESHOLD_TYPE == 'mahalanobis':
@@ -186,7 +194,7 @@ class MainTSAI(Main):
 
             anomalies = (anomaly_score > self.mahalanobis['threshold']) == True
             non_anomalies = (
-                anomaly_score <= self.mahalanobis['threshold']) != True
+                                    anomaly_score <= self.mahalanobis['threshold']) != True
             # plot_anomaly_score(ts_true.name, anomaly_score, anomalies, self.mahalanobis['threshold'])
 
             if len(anom_index[0]) > 0:
@@ -200,10 +208,12 @@ class MainTSAI(Main):
             else:
                 for index in range(len(self.mahalanobis_distance_evaluation)):
                     if index not in anom_index[0]:
-                        anomalies.iloc[index*self.params.WINDOW_STRIDE:index *
-                                       self.params.WINDOW_STRIDE+self.params.WINDOW_STRIDE, :] = False
-                        non_anomalies.iloc[index*self.params.WINDOW_STRIDE:index *
-                                           self.params.WINDOW_STRIDE+self.params.WINDOW_STRIDE, :] = True
+                        anomalies.iloc[index * self.params.WINDOW_STRIDE:index *
+                                                                         self.params.WINDOW_STRIDE + self.params.WINDOW_STRIDE,
+                        :] = False
+                        non_anomalies.iloc[index * self.params.WINDOW_STRIDE:index *
+                                                                             self.params.WINDOW_STRIDE + self.params.WINDOW_STRIDE,
+                        :] = True
                 ts_anomalies = np.array([])
 
         elif self.params.THRESHOLD_TYPE == 'score':
@@ -213,7 +223,6 @@ class MainTSAI(Main):
             trajectory_anomalies = ts_true.data[anomalies]
 
             # plot_anomaly_score(ts_true.name, anomaly_score, anomalies, self.score['threshold'])
-
 
     def run(self, train_list: list = None, test_list: list = None, corruption_params: dict = {}) -> None:
         """
@@ -225,7 +234,7 @@ class MainTSAI(Main):
         """
         if train_list is not None and len(train_list) > 0:
             self.train(t_list=train_list)
-            self.evaluate(dataset=self.dataset_train, dataset_process=self.dataset_train_process,
-                          mode='complete', train=True, threshold_params={'lower_perc': 0.05, 'upper_perc': 0.95})
+            self.predict(dataset=self.dataset_train, dataset_process=self.dataset_train_process,
+                         mode='complete', train=True, threshold_params={'lower_perc': 0.05, 'upper_perc': 0.95})
         if test_list is not None and len(test_list) > 0:
-            self.test(t_list=test_list, corruption_params=corruption_params)
+            self.inference(t_list=test_list, corruption_params=corruption_params)

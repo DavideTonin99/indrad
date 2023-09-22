@@ -40,22 +40,6 @@ def fit_pca(dataset, n_components=21, show_plot_variance=False) -> PCA:
     return pca
 
 
-def compute_quantile_error_threshold(errors: np.array, lower_perc: float, upper_perc: float) -> list:
-    """
-    Calculating the quantile error threshold
-    :param errors: array di errori
-    :param lower_perc: percentuale inferiore
-    :param upper_perc: percentuale superiore
-    :return: [lower_bound, upper_bound]
-    """
-    q1, q2 = np.quantile(errors, [lower_perc, upper_perc], axis=0)
-    pc_iqr = q2 - q1
-    lower_bound = q1 - (5 * pc_iqr)
-    upper_bound = q2 + (5 * pc_iqr)
-
-    return [lower_bound, upper_bound]
-
-
 def test_sklearn(y_true, y_pred):
     """
     Test the model with sklearn metrics
