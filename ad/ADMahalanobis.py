@@ -48,7 +48,7 @@ class ADMahalanobis(AD):
         for i in range(self.params.GAUSSIAN_MIXTURE_COMPONENTS):
             self.mahalanobis_distance.append(
                 mahalanobis_dist(self.inverse_covariance_matrix, self.gm.means_[i], ts_data))
-        self.mahalanobis_distance = np.min(np.array(self.mahalanobis_distance).T)
+        self.mahalanobis_distance = np.min(np.array(self.mahalanobis_distance).T, axis=1)
 
     def get_ts_anomalies(self, ts_data: np.array, errors: np.array) -> np.array:
         anom_index = np.where(self.mahalanobis_distance > self.mahalanobis_distance_train)[0]
@@ -61,14 +61,14 @@ class ADMahalanobis(AD):
                 if index in anom_index:
                     start = index * self.params.WINDOW_STRIDE
                     end = index * self.params.WINDOW_STRIDE + self.params.WINDOW_STRIDE
-                    anomaly_mask[start:end, :] = False
+                    anomaly_mask[start:end] = False
             anomalies = ts_data[anomaly_mask]
         else:
             for index in range(len(self.mahalanobis_distance)):
                 if index not in anom_index:
                     start = index * self.params.WINDOW_STRIDE
                     end = index * self.params.WINDOW_STRIDE + self.params.WINDOW_STRIDE
-                    anomaly_mask[start:end, :] = False
+                    anomaly_mask[start:end] = False
             anomalies = np.array([])
 
         return anomalies

@@ -1,3 +1,5 @@
+import copy
+
 from ad.ADMahalanobis import ADMahalanobis
 from ad.ADQuantile import ADQuantile
 from classes.Main import Main

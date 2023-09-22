@@ -256,4 +256,4 @@ class TimeSeries:
         Evaluate the AD model
         @return: None
         """
-        self.ad_model.evaluate(ts=self)
+        self.ad_model.evaluate(ts_data=self.data)

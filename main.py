@@ -15,7 +15,7 @@ params = Params({
     'APPLY_PCA': False,
     'PCA_COMPONENTS': 25,
     'NORMALIZER_MODEL': StandardScaler(),
-    'THRESHOLD_TYPE': 'quantile',
+    'THRESHOLD_TYPE': 'mahalanobis',
     'GAUSSIAN_MIXTURE_COMPONENTS': 10,
 })
 

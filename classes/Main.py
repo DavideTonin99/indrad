@@ -127,7 +127,8 @@ class Main(ABC):
             t_list = []
         data = self.load_data(t_list=t_list, params=self.params)
         for ts_name in data.keys():
-            data[ts_name].set_ad_model(ad_model)
+            ad_model_copy = copy.deepcopy(ad_model)
+            data[ts_name].set_ad_model(ad_model_copy)
         name = self.get_dataset_name(prefix='test')
 
         self.dataset_test, self.dataset_test_process = self.prepare_dataset(
