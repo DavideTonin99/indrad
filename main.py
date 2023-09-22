@@ -1,3 +1,4 @@
+from classes.Params import Params
 from models.TimeSeries import *
 from models.TimeSeriesUtils import *
 from models.Dataset import *
@@ -10,7 +11,7 @@ train_list = [f'trajectory_{i}' for i in range(1, 11)]
 # test_list = [f'trajectory_{i}' for i in range(11, 14)]
 test_list = [f'trajectory_{i}' for i in [11, 12, 14]]
 
-params = {
+params = Params({
     'APPLY_MOVING_AVG': True,
     'MOVING_AVG_STEP': 50,
     'WINDOW_TYPE': 'sliding',
@@ -21,7 +22,7 @@ params = {
     'NORMALIZER_MODEL': StandardScaler(),
     'THRESHOLD_TYPE': 'quantile',
     'GAUSSIAN_MIXTURE_COMPONENTS': 10,
-}
+})
 
 corruption_params = {
     # 'trajectory_11': {

@@ -4,8 +4,6 @@ import numpy as np
 
 from ad.AD import AD
 from classes.Params import Params
-from models.TimeSeries import TimeSeries
-
 
 class ADQuantile(AD):
 
@@ -51,13 +49,13 @@ class ADQuantile(AD):
         self.lower_bound = q1 - (self.multiplier * pc_iqr)
         self.upper_bound = q2 + (self.multiplier * pc_iqr)
 
-    def evaluate(self, ts: TimeSeries) -> None:
+    def evaluate(self, ts_data: np.array) -> None:
         pass
 
-    def get_ts_anomalies(self, ts_true: TimeSeries, errors: np.array) -> np.array:
+    def get_ts_anomalies(self, ts_data: np.array, errors: np.array) -> np.array:
         anomaly_mask = np.logical_or(errors < self.lower_bound, errors > self.upper_bound)
 
-        anomalies = copy.deepcopy(ts_true.data)
+        anomalies = copy.deepcopy(ts_data)
         anomalies[np.logical_not(anomaly_mask)] = np.nan
 
         return anomalies

@@ -82,8 +82,8 @@ class MainPCA(Main):
         self.dataset_test_process.pca(model=self.pca_model)
 
         if self.params.THRESHOLD_TYPE == 'mahalanobis':
-            for ts_name in self.dataset_test.time_series.keys():
-                self.dataset_test.time_series[ts_name].evaluate_ad_model()
+            for ts_name in self.dataset_test_process.time_series.keys():
+                self.dataset_test_process.time_series[ts_name].evaluate_ad_model()
 
         self.dataset_test_process.pca_inverse(model=self.pca_model)
 
@@ -91,15 +91,19 @@ class MainPCA(Main):
         self.dataset_test_process.remove_window(step=self.params.WINDOW_STRIDE)
 
         for ts_name in self.dataset_test.time_series.keys():
+            self.dataset_test.time_series[ts_name].set_ad_model(self.dataset_test_process.time_series[ts_name].ad_model)
+
             self.errors[ts_name] = compute_errors(
                 ts_true=self.dataset_test.time_series[ts_name], ts_pred=self.dataset_test_process.time_series[ts_name],
                 abs=False)
+            self.anomaly(ts_true=self.dataset_test.time_series[ts_name], errors=self.errors[ts_name])
 
     def predict(self, ts: TimeSeries, ts_process: TimeSeries, threshold_params: dict = None) -> None:
         pass
 
     def anomaly(self, ts_true: TimeSeries, errors: np.array, show_plot: bool = True) -> None:
         anomalies = ts_true.ad_model.get_ts_anomalies(ts_true=ts_true, errors=errors)
+        print(anomalies)
 
     def run(self, train_list: list = None, test_list: list = None, corruption_params: dict = None) -> None:
         if corruption_params is None:

@@ -3,7 +3,6 @@ from abc import abstractmethod
 import numpy as np
 
 from classes.Params import Params
-from models.TimeSeries import TimeSeries
 
 
 class AD:
@@ -20,17 +19,17 @@ class AD:
         raise NotImplementedError("calculate_threshold method not implemented")
 
     @abstractmethod
-    def evaluate(self, ts: TimeSeries) -> None:
+    def evaluate(self, ts_data: np.array) -> None:
         """
         Evaluate the model with the data of the time series
-        @param ts: time series
+        @param ts_data: time series data
         """
         pass
 
-    def get_ts_anomalies(self, ts_true: TimeSeries, errors: np.array) -> np.array:
+    def get_ts_anomalies(self, ts_data: np.array, errors: np.array) -> np.array:
         """
         Get the anomalies of the time series
-        @param ts_true: time series with the true values
+        @param ts_data: time series with the true values
         @param errors: errors of the predictions
         @return:
         """
