@@ -1,22 +1,17 @@
 from classes.Params import Params
-from models.TimeSeries import *
-from models.TimeSeriesUtils import *
-from models.Dataset import *
-from utils.utils import *
 from classes.MainPCA import MainPCA
-from classes.MainTSAI import MainTSAI
 from sklearn.preprocessing import StandardScaler
 
 train_list = [f'trajectory_{i}' for i in range(1, 11)]
-# test_list = [f'trajectory_{i}' for i in range(11, 14)]
+#test_list = [f'trajectory_{i}' for i in range(11, 18)]
 test_list = [f'trajectory_{i}' for i in [11, 12, 14]]
 
 params = Params({
     'APPLY_MOVING_AVG': True,
     'MOVING_AVG_STEP': 50,
     'WINDOW_TYPE': 'sliding',
-    'WINDOW_SIZE': 4000,
-    'WINDOW_STRIDE': 4000,
+    'WINDOW_SIZE': 2000,
+    'WINDOW_STRIDE': 500,
     'APPLY_PCA': False,
     'PCA_COMPONENTS': 25,
     'NORMALIZER_MODEL': StandardScaler(),
@@ -25,11 +20,11 @@ params = Params({
 })
 
 corruption_params = {
-    # 'trajectory_11': {
-    #     'freeze_zero': [
-    #         {'start': 5000, 'end': 7000},
-    #     ],
-    # },
+    'trajectory_11': {
+        'freeze_zero': [
+            {'start': 2000, 'end': 7000},
+        ],
+    },
     'trajectory_12': {
         'spike': [
             {'point': 1000, 'error': 500},
@@ -39,11 +34,11 @@ corruption_params = {
             {'point': 5000, 'error': 500},
         ],
     },
-    # 'trajectory_14': {
-    #     'step': [
-    #         {'start': 1000, 'end': 3000},
-    #     ],
-    # },
+    'trajectory_14': {
+        'step': [
+            {'start': 5000, 'end': 10000},
+        ],
+    },
 }
 
 main = MainPCA(params=params)

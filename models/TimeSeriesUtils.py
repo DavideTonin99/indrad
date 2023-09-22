@@ -88,7 +88,7 @@ class TimeSeriesUtils:
         return TimeSeriesUtils.ts_sliding_window(data, window_size, window_size)
 
     @staticmethod
-    def ts_remove_window(data: np.array, n_features: int, step: int = 1, overlap_keep: str = 'end') -> np.array:
+    def ts_remove_window(data: np.array, n_features: int, step: int = 1, overlap_keep: str = 'start') -> np.array:
         """
         Remove a sliding window from the time series
         @param data: data of the time series
@@ -100,7 +100,7 @@ class TimeSeriesUtils:
             result = np.concatenate([data[0].flatten(), data[1:, -(n_features * step):].flatten()]).reshape(-1,
                                                                                                             n_features)
         else:
-            result = np.concatenate([data[:, :(n_features * step)].flatten(), data[-1].flatten()]).reshape(-1,
+            result = np.concatenate([data[:-1, :(n_features * step)].flatten(), data[-1].flatten()]).reshape(-1,
                                                                                                            n_features)
         return result
 
@@ -120,11 +120,11 @@ class TimeSeriesUtils:
             corruption_type = np.random.choice(
                 TimeSeriesUtils.CORRUPTION_TYPES)
 
-        return eval(f"TimeSeriesUtils._{corruption_type}")(data=data, **kwargs)
+        return eval(f"TimeSeriesUtils.ts_{corruption_type}")(data=data, **kwargs)
 
     @staticmethod
-    def ts_freeze_zero(data: np.array, feature_col: int = None, start: int = None, end: int = None) -> [np.array,
-                                                                                                        np.array]:
+    def ts_freeze_zero(data: np.array, feature_col: int = None, start: int = None, end: int = None, **kwargs) -> [
+        np.array, np.array]:
         """
         Corrupt the time series with freeze zero
         @param data: data of the time series
@@ -145,8 +145,9 @@ class TimeSeriesUtils:
         return [data, anomaly_mask]
 
     @staticmethod
-    def ts_freeze_last_value(data: np.array, feature_col: int = None, start: int = None, end: int = None) -> [np.array,
-                                                                                                              np.array]:
+    def ts_freeze_last_value(data: np.array, feature_col: int = None, start: int = None, end: int = None, **kwargs) -> [
+        np.array,
+        np.array]:
         """
         Corrupt the time series with freeze last value
         @param data: data of the time series
@@ -167,7 +168,8 @@ class TimeSeriesUtils:
         return [data, anomaly_mask]
 
     @staticmethod
-    def ts_spike(data: np.array, feature_col: int = None, point: int = None, error: int = None) -> [np.array, np.array]:
+    def ts_spike(data: np.array, feature_col: int = None, point: int = None, error: int = None, **kwargs) -> [np.array,
+                                                                                                              np.array]:
         """
         Corrupt the time series with spike
         @param data: data of the time series
@@ -189,7 +191,8 @@ class TimeSeriesUtils:
         return [data, anomaly_mask]
 
     @staticmethod
-    def ts_step(data: np.array, feature_col: int = None, start: int = None, end: int = None, error: int = None) -> [
+    def ts_step(data: np.array, feature_col: int = None, start: int = None, end: int = None, error: int = None,
+                **kwargs) -> [
         np.array, np.array]:
         """
         Corrupt the time series with step

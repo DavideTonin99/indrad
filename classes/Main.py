@@ -59,7 +59,7 @@ class Main(ABC):
             'window_stride': params.WINDOW_STRIDE
         }
         for t_name in t_list:
-            t = TimeSeries(name=t_name, auto_load=True, kwargs=window_params)
+            t = TimeSeries(name=t_name, auto_load=True, **window_params)
             data[t_name] = t
         return data
 
@@ -80,7 +80,7 @@ class Main(ABC):
             'window_size': self.params.WINDOW_SIZE,
             'window_stride': self.params.WINDOW_STRIDE
         }
-        dataset = Dataset(name, time_series=data, is_train=is_train, kwargs=window_params)
+        dataset = Dataset(name, time_series=data, is_train=is_train, **window_params)
         if self.params.APPLY_MOVING_AVG:
             dataset.moving_average(step=self.params.MOVING_AVG_STEP)
         dataset.prepare_for_window()

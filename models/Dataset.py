@@ -36,7 +36,7 @@ class Dataset:
 
         if self.is_train:
             self.ts_data = TimeSeries(name=name, data=np.concatenate(
-                [ts.data for ts in self.time_series.values()], axis=0), kwargs=kwargs)
+                [ts.data for ts in self.time_series.values()], axis=0), **kwargs)
 
         if self.window_size is not None:
             self.prepare_for_window()
@@ -49,6 +49,39 @@ class Dataset:
         """
         return self.time_series[name]
 
+    def get_window_params(self):
+        """
+        Get the window parameters
+        @return: window parameters
+        """
+        result = {
+            'window_type': self.window_type,
+            'window_size': self.window_size,
+            'window_stride': self.window_stride
+        }
+        return result
+
+    def set_window_params(self, window_type: str, window_size: int, window_stride: int = None):
+        """
+        Set the window parameters
+        @param window_type: type of window to add ("sliding" | "tumbling")
+        @param window_size: size of the window
+        @param window_stride: stride of the window
+        @raise Exception: window type not supported
+        """
+        if window_type not in ['sliding', 'tumbling']:
+            raise Exception("Window type not supported")
+
+        if window_type is not None:
+            self.window_type = window_type
+        if window_size is not None:
+            self.window_size = window_size
+        if window_type is not None:
+            self.window_stride = window_stride
+
+        if self.window_type == 'tumbling':
+            self.window_stride = self.window_size
+
     def add_ts(self, ts: TimeSeries) -> None:
         """
         Add a time series to the dataset
@@ -57,7 +90,7 @@ class Dataset:
         self.time_series[ts.name] = ts
         if self.is_train:
             self.ts_data = TimeSeries(name=self.name, data=np.concatenate(
-                [ts.data for ts in self.time_series.values()], axis=0))
+                [ts.data for ts in self.time_series.values()], axis=0), **self.get_window_params())
 
     def moving_average(self, step: int, ts_name: str = None) -> None:
         """
@@ -117,26 +150,25 @@ class Dataset:
         @raise Exception: window type not supported
         @raise Exception: window size not specified
         """
-        if window_size is not None:
-            self.window_size = window_size
+        if window_type is not None:
+            self.set_window_params(window_type=window_type, window_size=window_size, window_stride=window_stride)
 
-            if window_type != "sliding" and window_type != "tumbling":
-                raise Exception("Window type not supported")
-
-            if ts_name is not None:
-                if ts_name in self.time_series.keys():
-                    self.time_series[ts_name].add_window(window_type=window_type, window_size=window_size,
-                                                         window_stride=window_stride)
-                else:
-                    raise Exception("Time Series not found")
-            else:
-                for ts_name in self.time_series.keys():
-                    self.time_series[ts_name].add_window(window_type=window_type, window_size=window_size,
-                                                         window_stride=window_stride)
-            self.ts_data = TimeSeries(name=self.name, data=np.concatenate(
-                [ts.data for ts in self.time_series.values()], axis=0))
-        else:
+        if self.window_size is None:
             raise Exception("Window size not specified")
+
+        if self.window_type not in ['sliding', 'tumbling']:
+            raise Exception("Window type not supported")
+
+        if ts_name is not None:
+            if ts_name in self.time_series.keys():
+                self.time_series[ts_name].add_window()
+            else:
+                raise Exception("Time Series not found")
+        else:
+            for ts_name in self.time_series.keys():
+                self.time_series[ts_name].add_window()
+        self.ts_data = TimeSeries(name=self.name, data=np.concatenate(
+            [ts.data for ts in self.time_series.values()], axis=0))
 
     def remove_window(self, ts_name: str = None, step: int = 1) -> None:
         """

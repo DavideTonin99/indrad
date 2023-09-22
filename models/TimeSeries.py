@@ -93,7 +93,8 @@ class TimeSeries:
         @param window_stride: stride of the window
         Exception: window type not supported
         """
-        self.set_window_params(window_type, window_size, window_stride)
+        if window_type is not None:
+            self.set_window_params(window_type, window_size, window_stride)
         self.add_window()
 
         step = self.window_stride
@@ -102,7 +103,7 @@ class TimeSeries:
         self.remove_window(step=step)
         self.anomaly_mask = np.zeros(self.data.shape)
 
-    def add_window(self, window_type: str = "sliding", window_size: int = None, window_stride: int = 1) -> None:
+    def add_window(self, window_type: str = None, window_size: int = None, window_stride: int = None) -> None:
         """
         Add a window to the time series
         @param window_type: type of window to add ("sliding" | "tumbling")
@@ -111,20 +112,22 @@ class TimeSeries:
         @raise Exception: window type not supported
         @raise Exception: window size not specified
         """
-        self.set_window_params(window_type, window_size, window_stride)
+        if window_type is not None:
+            self.set_window_params(window_type, window_size, window_stride)
 
         if self.window_size is None:
             raise Exception("Window size not specified")
 
-        if window_type not in ['sliding', 'tumbling']:
+        if self.window_type not in ['sliding', 'tumbling']:
             raise Exception("Window type not supported")
 
-        while len(self.data) % self.window_size != 0:
-            self.data = self.data[:-1]
+        max_len = self.window_size
+        while max_len < len(self.data) - self.window_stride:
+            max_len += self.window_stride
 
-        if window_type == "sliding":
+        if self.window_type == "sliding":
             self.sliding_window()
-        elif window_type == "tumbling":
+        elif self.window_type == "tumbling":
             self.tumbling_window()
 
     def sliding_window(self, window_size: int = None, window_stride: int = None) -> None:
@@ -133,7 +136,8 @@ class TimeSeries:
         @param window_size: size of the window
         @param window_stride: stride of the window
         """
-        self.set_window_params(window_size=window_size, window_stride=window_stride, window_type='sliding')
+        if window_size is not None or window_stride is not None:
+            self.set_window_params(window_size=window_size, window_stride=window_stride, window_type='sliding')
 
         self.data = TimeSeriesUtils.ts_sliding_window(
             self.data, self.window_size, self.window_stride)
@@ -143,7 +147,8 @@ class TimeSeries:
         Add a tumbling window to the time series
         @param window_size: size of the window
         """
-        self.set_window_params(window_size=window_size, window_type='tumbling')
+        if window_size is not None:
+            self.set_window_params(window_size=window_size, window_type='tumbling')
 
         self.data = TimeSeriesUtils.ts_tumbling_window(
             self.data, self.window_size)

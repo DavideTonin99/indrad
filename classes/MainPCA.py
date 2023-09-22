@@ -2,6 +2,7 @@ from ad.ADMahalanobis import ADMahalanobis
 from ad.ADQuantile import ADQuantile
 from classes.Main import Main
 from classes.Params import Params
+from models.TimeSeriesUtils import TimeSeriesUtils
 from utils.utils import *
 
 from sklearn.preprocessing import StandardScaler
@@ -91,6 +92,14 @@ class MainPCA(Main):
         self.dataset_test_process.remove_window(step=self.params.WINDOW_STRIDE)
 
         for ts_name in self.dataset_test.time_series.keys():
+            plot_ts(f"Figure Test {ts_name}", ts={'start': self.dataset_test.time_series[ts_name].data,
+                                                  'end': self.dataset_test_process.time_series[ts_name].data},
+                    features=TimeSeriesUtils.FEATURES,
+                    n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), figsize=(15, 5),
+                    colors={'start': 'black', 'end': 'orange'})
+            plt.show()
+
+        for ts_name in self.dataset_test.time_series.keys():
             self.dataset_test.time_series[ts_name].set_ad_model(self.dataset_test_process.time_series[ts_name].ad_model)
 
             self.errors[ts_name] = compute_errors(
@@ -102,8 +111,12 @@ class MainPCA(Main):
         pass
 
     def anomaly(self, ts_true: TimeSeries, errors: np.array, show_plot: bool = True) -> None:
-        anomalies = ts_true.ad_model.get_ts_anomalies(ts_true=ts_true, errors=errors)
-        print(anomalies)
+        anomalies = ts_true.ad_model.get_ts_anomalies(ts_data=ts_true.data, errors=errors)
+        plot_ts(title=f"Figure Test {ts_true.name} with anomalies", ts={'ts': ts_true.data, 'anomaly': anomalies},
+                features=TimeSeriesUtils.FEATURES,
+                n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), figsize=(15, 5),
+                colors={'ts': 'black', 'anomaly': 'red'})
+        plt.show()
 
     def run(self, train_list: list = None, test_list: list = None, corruption_params: dict = None) -> None:
         if corruption_params is None:
