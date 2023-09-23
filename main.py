@@ -4,13 +4,13 @@ from sklearn.preprocessing import StandardScaler
 
 train_list = [f'trajectory_{i}' for i in range(1, 11)]
 #test_list = [f'trajectory_{i}' for i in range(11, 18)]
-test_list = [f'trajectory_{i}' for i in [11, 12, 14]]
+test_list = [f'trajectory_{i}' for i in [11, 12, 14, 15]]
 
 params = Params({
     'APPLY_MOVING_AVG': True,
     'MOVING_AVG_STEP': 50,
     'WINDOW_TYPE': 'sliding',
-    'WINDOW_SIZE': 4000,
+    'WINDOW_SIZE': 2000,
     'WINDOW_STRIDE': 500,
     'APPLY_PCA': False,
     'PCA_COMPONENTS': 25,
@@ -46,10 +46,15 @@ corruption_params = {
             {'start': 5000, 'end': 10000},
         ],
     },
+    'trajectory_15': {
+        'freeze_last_value': [
+            {'start': 5000, 'end': 10000},
+        ],
+    },
 }
 
 main = MainPCA(params=params)
-main.run(train_list=train_list, test_list=test_list, corruption_params=corruption_params)
+main.run(train_list=train_list, test_list=test_list, corruption_params=corruption_params, show_plot=True)
 
 # main = MainTSAI(params=params)
 # main.run(train_list=train_list)

@@ -88,7 +88,7 @@ class TimeSeriesUtils:
         return TimeSeriesUtils.ts_sliding_window(data, window_size, window_size)
 
     @staticmethod
-    def ts_remove_window(data: np.array, n_features: int, step: int = 1, overlap_keep: str = 'start') -> np.array:
+    def ts_remove_window(data: np.array, n_features: int, step: int = 1, overlap_keep: str = 'end') -> np.array:
         """
         Remove a sliding window from the time series
         @param data: data of the time series
@@ -101,7 +101,7 @@ class TimeSeriesUtils:
                                                                                                             n_features)
         else:
             result = np.concatenate([data[:-1, :(n_features * step)].flatten(), data[-1].flatten()]).reshape(-1,
-                                                                                                           n_features)
+                                                                                                             n_features)
         return result
 
     @staticmethod
@@ -162,7 +162,7 @@ class TimeSeriesUtils:
             start = np.random.randint(1, len(data))
         if end is None:
             end = np.random.randint(start, len(data))
-        data[start:end, feature_col] = data[start - 1, :]
+        data[start:end, feature_col] = data[start - 1, feature_col]
         anomaly_mask = np.zeros(data.shape)
         anomaly_mask[start:end, :] = 1.0
         return [data, anomaly_mask]

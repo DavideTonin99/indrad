@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 from sklearn.mixture import GaussianMixture
 
@@ -65,13 +67,14 @@ class ADMahalanobis(AD):
                     start = index * self.params.WINDOW_STRIDE
                     end = index * self.params.WINDOW_STRIDE + self.params.WINDOW_STRIDE
                     self.anomaly_mask[start:end] = False
-            self.anomalies = ts_data[self.anomaly_mask]
+            self.anomalies = copy.deepcopy(ts_data)
+            self.anomalies[~self.anomaly_mask] = np.nan
         else:
             for index in range(len(self.mahalanobis_distance)):
                 if index not in anom_index:
                     start = index * self.params.WINDOW_STRIDE
                     end = index * self.params.WINDOW_STRIDE + self.params.WINDOW_STRIDE
                     self.anomaly_mask[start:end] = False
-            self.anomalies = np.array([])
+            self.anomalies = np.array([[np.nan] * ts_data.shape[0]])
 
         return self.anomalies

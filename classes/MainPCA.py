@@ -1,5 +1,3 @@
-import copy
-
 from ad.ADMahalanobis import ADMahalanobis
 from ad.ADOneClassSVM import ADOneClassSVM
 from ad.ADQuantile import ADQuantile
@@ -64,7 +62,7 @@ class MainPCA(Main):
         elif self.params.THRESHOLD_TYPE == 'ocsvm':
             self.ad_model = ADOneClassSVM(params=params)
 
-    def train(self, t_list: list = None, threshold_params: dict = None) -> None:
+    def train(self, t_list: list = None, threshold_params: dict = None, plot_stats: bool = False) -> None:
         if t_list is None:
             t_list = []
         if threshold_params is None:
@@ -90,6 +88,13 @@ class MainPCA(Main):
         errors = compute_errors(ts_true=self.dataset_train.ts_data,
                                 ts_pred=self.dataset_train_process.ts_data, abs=False)
 
+        if plot_stats:
+            plot = Plot()
+            for plot_type in ['distribution', 'quantile']:
+                plot.stats(title=f"Figure Train {plot_type} errors", ts_data=errors, features=TimeSeriesUtils.FEATURES,
+                           n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), plot_type=plot_type,
+                           show=True)
+
         if self.params.THRESHOLD_TYPE == 'ocsvm':
             self.ad_model.train(ts_data=errors)
 
@@ -112,8 +117,9 @@ class MainPCA(Main):
 
         plot = Plot()
         for ts_name in self.dataset_test.time_series.keys():
-            plot.ts(f"Figure Test {ts_name}", ts={'ts': self.dataset_test.time_series[ts_name].data,
-                                                  'pca_inverse': self.dataset_test_process.time_series[ts_name].data},
+            plot.ts(f"Figure Test {ts_name}", time_series={'ts_true': self.dataset_test.time_series[ts_name].data,
+                                                           'ts_pred': self.dataset_test_process.time_series[
+                                                               ts_name].data},
                     features=TimeSeriesUtils.FEATURES,
                     n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), show=show_plot)
 
@@ -139,11 +145,13 @@ class MainPCA(Main):
             plot.anomaly_score(ts_name=ts_true.name, anomaly_score=anomaly_score, anomaly_mask=anomaly_mask,
                                threshold=threshold, show=show_plot)
 
-        plot.ts(title=f"Figure Test {ts_true.name} with anomalies", ts={'ts': ts_true.data, 'anomaly': anomalies},
+        plot.ts(title=f"Figure Test {ts_true.name} with anomalies",
+                time_series={'ts_ok': ts_true.data, 'anomaly': anomalies},
                 features=TimeSeriesUtils.FEATURES,
                 n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), show=show_plot)
 
-    def run(self, train_list: list = None, test_list: list = None, corruption_params: dict = None) -> None:
+    def run(self, train_list: list = None, test_list: list = None, corruption_params: dict = None,
+            show_plot: bool = True) -> None:
         if corruption_params is None:
             corruption_params = {}
 
@@ -151,4 +159,4 @@ class MainPCA(Main):
             self.train(t_list=train_list)
 
         if test_list is not None and len(test_list) > 0:
-            self.test(t_list=test_list, corruption_params=corruption_params, show_plot=True)
+            self.test(t_list=test_list, corruption_params=corruption_params, show_plot=show_plot)
