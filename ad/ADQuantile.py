@@ -5,6 +5,7 @@ import numpy as np
 from ad.AD import AD
 from classes.Params import Params
 
+
 class ADQuantile(AD):
 
     def __init__(self, params: Params):

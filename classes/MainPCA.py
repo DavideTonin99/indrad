@@ -1,10 +1,13 @@
 import copy
 
 from ad.ADMahalanobis import ADMahalanobis
+from ad.ADOneClassSVM import ADOneClassSVM
 from ad.ADQuantile import ADQuantile
+from ad.ADScore import ADScore
 from classes.Main import Main
 from classes.Params import Params
 from models.TimeSeriesUtils import TimeSeriesUtils
+from utils.Plot import Plot
 from utils.utils import *
 
 from sklearn.preprocessing import StandardScaler
@@ -49,6 +52,10 @@ class MainPCA(Main):
             self.ad_model = ADQuantile(params=params)
         elif self.params.THRESHOLD_TYPE == 'mahalanobis':
             self.ad_model = ADMahalanobis(params=params)
+        elif self.params.THRESHOLD_TYPE == 'score':
+            self.ad_model = ADScore(params=params)
+        elif self.params.THRESHOLD_TYPE == 'ocsvm'
+            self.ad_model = ADOneClassSVM(params=params)
 
     def train(self, t_list: list = None, threshold_params: dict = None) -> None:
         if t_list is None:
@@ -76,10 +83,13 @@ class MainPCA(Main):
         errors = compute_errors(ts_true=self.dataset_train.ts_data,
                                 ts_pred=self.dataset_train_process.ts_data, abs=False)
 
+        if self.params.THRESHOLD_TYPE == 'ocsvm':
+            self.ad_model.train(ts_data=errors)
+
         threshold_params['errors'] = errors
         self.ad_model.calculate_threshold(**threshold_params)
 
-    def test(self, t_list: list = None, corruption_params: dict = None) -> None:
+    def test(self, t_list: list = None, corruption_params: dict = None, show_plot: bool = True) -> None:
         super().pre_test(t_list=t_list, corruption_params=corruption_params, ad_model=self.ad_model)
 
         self.dataset_test_process.pca(model=self.pca_model)
@@ -93,32 +103,38 @@ class MainPCA(Main):
         self.dataset_test_process.normalize_inverse(normalizer=self.normalizer_model)
         self.dataset_test_process.remove_window(step=self.params.WINDOW_STRIDE)
 
+        plot = Plot()
         for ts_name in self.dataset_test.time_series.keys():
-            plot_ts(f"Figure Test {ts_name}", ts={'start': self.dataset_test.time_series[ts_name].data,
-                                                  'end': self.dataset_test_process.time_series[ts_name].data},
+            plot.ts(f"Figure Test {ts_name}", ts={'ts': self.dataset_test.time_series[ts_name].data,
+                                                  'pca_inverse': self.dataset_test_process.time_series[ts_name].data},
                     features=TimeSeriesUtils.FEATURES,
-                    n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), figsize=(15, 5),
-                    colors={'start': 'black', 'end': 'orange'})
-            plt.show()
+                    n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), show=show_plot)
 
-        for ts_name in self.dataset_test.time_series.keys():
             self.dataset_test.time_series[ts_name].set_ad_model(self.dataset_test_process.time_series[ts_name].ad_model)
 
             self.errors[ts_name] = compute_errors(
                 ts_true=self.dataset_test.time_series[ts_name], ts_pred=self.dataset_test_process.time_series[ts_name],
                 abs=False)
-            self.anomaly(ts_true=self.dataset_test.time_series[ts_name], errors=self.errors[ts_name])
+            self.anomaly(ts_true=self.dataset_test.time_series[ts_name], errors=self.errors[ts_name],
+                         show_plot=show_plot)
 
     def predict(self, ts: TimeSeries, ts_process: TimeSeries, threshold_params: dict = None) -> None:
         pass
 
     def anomaly(self, ts_true: TimeSeries, errors: np.array, show_plot: bool = True) -> None:
         anomalies = ts_true.ad_model.get_ts_anomalies(ts_data=ts_true.data, errors=errors)
-        plot_ts(title=f"Figure Test {ts_true.name} with anomalies", ts={'ts': ts_true.data, 'anomaly': anomalies},
+        anomaly_mask = ts_true.ad_model.get('anomaly_mask')
+        anomaly_score = ts_true.ad_model.get('anomaly_score')
+        threshold = ts_true.ad_model.get('threshold')
+
+        plot = Plot()
+        if self.params.THRESHOLD_TYPE in ['mahalanobis', 'score']:
+            plot.anomaly_score(ts_name=ts_true.name, anomaly_score=anomaly_score, anomaly_mask=anomaly_mask,
+                               threshold=threshold, show=show_plot)
+
+        plot.ts(title=f"Figure Test {ts_true.name} with anomalies", ts={'ts': ts_true.data, 'anomaly': anomalies},
                 features=TimeSeriesUtils.FEATURES,
-                n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), figsize=(15, 5),
-                colors={'ts': 'black', 'anomaly': 'red'})
-        plt.show()
+                n_rows=TimeSeriesUtils.N_JOINTS, n_cols=len(TimeSeriesUtils.FEATURES), show=show_plot)
 
     def run(self, train_list: list = None, test_list: list = None, corruption_params: dict = None) -> None:
         if corruption_params is None:
@@ -128,4 +144,4 @@ class MainPCA(Main):
             self.train(t_list=train_list)
 
         if test_list is not None and len(test_list) > 0:
-            self.test(t_list=test_list, corruption_params=corruption_params)
+            self.test(t_list=test_list, corruption_params=corruption_params, show_plot=True)

@@ -5,23 +5,6 @@ import sklearn
 
 from models.TimeSeries import TimeSeries
 
-def plot_ts(title, ts, features, n_rows, n_cols, figsize=(15, 5), colors={}, markers={}) -> None:
-    fig, axs = plt.subplots(n_rows, n_cols, figsize=figsize)
-    fig.suptitle(title)
-    col = 0
-    feature_index = 0
-    for feature in features:
-        for i in range(n_rows):
-            for key, value in ts.items():
-                marker = markers[key] if key in markers else None
-                color = colors[key] if key in colors else None
-
-                axs[i, col].plot(value[:, feature_index], color=color, marker=marker)
-                axs[i, col].set_title(f'{feature} {i}')
-            feature_index += 1
-        col += 1
-    # plt.show()
-
 
 def fit_pca(dataset, n_components=21, show_plot_variance=False) -> PCA:
     """

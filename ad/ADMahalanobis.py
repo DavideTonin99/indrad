@@ -17,6 +17,9 @@ class ADMahalanobis(AD):
         self.mahalanobis_distance_train = None
         self.mahalanobis_distance = None
         self.threshold = None
+        self.anomaly_mask = None
+        self.anomaly_score = None
+        self.anomalies = None
 
         # define default parameters for the mahalanobis error threshold
         if self.params.GAUSSIAN_MIXTURE_COMPONENTS:
@@ -52,23 +55,23 @@ class ADMahalanobis(AD):
 
     def get_ts_anomalies(self, ts_data: np.array, errors: np.array) -> np.array:
         anom_index = np.where(self.mahalanobis_distance > self.mahalanobis_distance_train)[0]
-        anomaly_score = np.sum(np.abs(errors), axis=1)
+        self.anomaly_score = np.sum(np.abs(errors), axis=1)
 
-        anomaly_mask = True == (anomaly_score > self.threshold)
+        self.anomaly_mask = True == (self.anomaly_score > self.threshold)
 
         if len(anom_index) > 0:
             for index in range(len(self.mahalanobis_distance)):
                 if index in anom_index:
                     start = index * self.params.WINDOW_STRIDE
                     end = index * self.params.WINDOW_STRIDE + self.params.WINDOW_STRIDE
-                    anomaly_mask[start:end] = False
-            anomalies = ts_data[anomaly_mask]
+                    self.anomaly_mask[start:end] = False
+            self.anomalies = ts_data[self.anomaly_mask]
         else:
             for index in range(len(self.mahalanobis_distance)):
                 if index not in anom_index:
                     start = index * self.params.WINDOW_STRIDE
                     end = index * self.params.WINDOW_STRIDE + self.params.WINDOW_STRIDE
-                    anomaly_mask[start:end] = False
-            anomalies = np.array([])
+                    self.anomaly_mask[start:end] = False
+            self.anomalies = np.array([])
 
-        return anomalies
+        return self.anomalies

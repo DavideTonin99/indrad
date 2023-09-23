@@ -10,8 +10,14 @@ class AD:
     def __init__(self, params: Params):
         self.params = params
 
+    def get(self, attr: str):
+        result = None
+        if hasattr(self, attr):
+            result = getattr(self, attr)
+        return result
+
     @abstractmethod
-    def train(self, ts: np.array) -> None:
+    def train(self, ts_data: np.array) -> None:
         raise NotImplementedError("train method not implemented")
 
     @abstractmethod

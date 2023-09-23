@@ -144,10 +144,12 @@ class Main(ABC):
         pass
 
     @abstractmethod
-    def test(self, t_list: list) -> None:
+    def test(self, t_list: list, corruption_params: dict = None, show_plot: bool = True) -> None:
         """
         Test the model
         @param t_list: list of test time series
+        @param corruption_params: parameters of the corruption
+        @param show_plot: if True, show the plot
         """
         pass
 

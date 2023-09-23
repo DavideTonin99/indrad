@@ -10,12 +10,12 @@ params = Params({
     'APPLY_MOVING_AVG': True,
     'MOVING_AVG_STEP': 50,
     'WINDOW_TYPE': 'sliding',
-    'WINDOW_SIZE': 2000,
+    'WINDOW_SIZE': 4000,
     'WINDOW_STRIDE': 500,
     'APPLY_PCA': False,
     'PCA_COMPONENTS': 25,
     'NORMALIZER_MODEL': StandardScaler(),
-    'THRESHOLD_TYPE': 'mahalanobis',
+    'THRESHOLD_TYPE': 'quantile',
     'GAUSSIAN_MIXTURE_COMPONENTS': 10,
 })
 

@@ -28,6 +28,10 @@ class Params:
         self.QUANTILE_MULTIPLIER = None
         # mahalanobis settings
         self.MAHALANOBIS_MULTIPLIER = None
+        # one class svm for anomaly settings
+        self.AD_OCSVM_KERNEL = None
+        self.AD_OCSVM_GAMMA = None
+        self.AD_OCSVM_NU = None
 
         for key, value in params.items():
             setattr(self, key, value)
