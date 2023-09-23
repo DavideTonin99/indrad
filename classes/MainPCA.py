@@ -28,6 +28,13 @@ class MainPCA(Main):
         'NORMALIZER_MODEL': StandardScaler(),
         'THRESHOLD_TYPE': 'quantile',
         'GAUSSIAN_MIXTURE_COMPONENTS': 10,
+        'OCSVM_KERNEL': 'rbf',
+        'OCSVM_GAMMA': 0.001,
+        'OCSVM_NU': 0.03,
+        'QUANTILE_LOWER_PERCENTAGE': 0.01,
+        'QUANTILE_UPPER_PERCENTAGE': 0.99,
+        'QUANTILE_MULTIPLIER': 5,
+        'MAHALANOBIS_MULTIPLIER': 5
     }
 
     def __init__(self, params: Params = None) -> None:
@@ -54,7 +61,7 @@ class MainPCA(Main):
             self.ad_model = ADMahalanobis(params=params)
         elif self.params.THRESHOLD_TYPE == 'score':
             self.ad_model = ADScore(params=params)
-        elif self.params.THRESHOLD_TYPE == 'ocsvm'
+        elif self.params.THRESHOLD_TYPE == 'ocsvm':
             self.ad_model = ADOneClassSVM(params=params)
 
     def train(self, t_list: list = None, threshold_params: dict = None) -> None:

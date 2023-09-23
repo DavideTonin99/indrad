@@ -17,6 +17,13 @@ params = Params({
     'NORMALIZER_MODEL': StandardScaler(),
     'THRESHOLD_TYPE': 'quantile',
     'GAUSSIAN_MIXTURE_COMPONENTS': 10,
+    'OCSVM_KERNEL': 'rbf',
+    'OCSVM_GAMMA': 0.001,
+    'OCSVM_NU': 0.03,
+    'QUANTILE_LOWER_PERCENTAGE': 0.01,
+    'QUANTILE_UPPER_PERCENTAGE': 0.99,
+    'QUANTILE_MULTIPLIER': 5,
+    'MAHALANOBIS_MULTIPLIER': 5,
 })
 
 corruption_params = {
